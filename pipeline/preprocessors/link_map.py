@@ -42,6 +42,8 @@ LINK_MAPS: list[LinkMap] = [
             "system_prompt": "langchain/agents/#langchain.agents.create_agent(system_prompt)",
             "AgentState": "langchain/agents/middleware/types/AgentState",
             "ModelRequest": "langchain/agents/middleware/types/ModelRequest",
+            "ModelResponse": "langchain/agents/middleware/types/ModelResponse",
+            "ExtendedModelResponse": "langchain/agents/middleware/types/ExtendedModelResponse",
             "@dynamic_prompt": "langchain/agents/middleware/types/dynamic_prompt",
             "@before_agent": "langchain/agents/middleware/types/before_agent",
             "@before_model": "langchain/agents/middleware/types/before_model",
