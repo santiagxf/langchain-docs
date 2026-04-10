@@ -82,11 +82,20 @@ Before you begin, make sure you have an API key from a model provider (e.g., Ant
     </Tab>
     <Tab title="Ollama">
         ```bash
-        # Local: Ollama must be running (https://ollama.com)
+        # Local: Ollama must be running on your machine
         # Cloud: Set your Ollama API key for hosted inference
         export OLLAMA_API_KEY="your-api-key"
         export TAVILY_API_KEY="your-tavily-api-key"
         ```
+    </Tab>
+    <Tab title="Other">
+        ```bash
+        # Set the API key for your provider
+        export <PROVIDER>_API_KEY="your-api-key"
+        export TAVILY_API_KEY="your-tavily-api-key"
+        ```
+
+        Deep Agents work with any [LangChain chat model](/oss/python/deepagents/models#supported-models). Set the API key for your provider.
     </Tab>
 </Tabs>
 
@@ -132,7 +141,7 @@ Use this to run an internet search for a given query. You can specify the max nu
 """
 ```
 
-Pick a model from your provider. By default, `create_deep_agent` uses `claude-sonnet-4-6`. Pass a `model` string to use a different provider — see [Suggested models](/oss/python/deepagents/models#suggested-models) for the full list.
+Pass a `model` string in `provider:model` format, or an initialized model instance. Defaults to `anthropic:claude-sonnet-4-6`. See [supported models](/oss/python/deepagents/models#supported-models) for all providers and [suggested models](/oss/python/deepagents/models#suggested-models) for tested recommendations.
 
 <Tabs>
     <Tab title="Anthropic">
@@ -198,6 +207,39 @@ Pick a model from your provider. By default, `create_deep_agent` uses `claude-so
         )
         ```
     </Tab>
+    <Tab title="Other">
+        Pass any [supported model string](/oss/python/deepagents/models#supported-models), or an initialized model instance:
+
+        <CodeGroup>
+            ```python model string
+            agent = create_deep_agent(
+                model="provider:model-name",
+                tools=[internet_search],
+                system_prompt=research_instructions,
+            )
+            ```
+            ```python init_chat_model
+            from langchain.chat_models import init_chat_model
+
+            model = init_chat_model("provider:model-name")
+            agent = create_deep_agent(
+                model=model,
+                tools=[internet_search],
+                system_prompt=research_instructions,
+            )
+            ```
+            ```python model class
+            from langchain_<provider> import Chat<Provider>
+
+            model = Chat<Provider>(model="model-name")
+            agent = create_deep_agent(
+                model=model,
+                tools=[internet_search],
+                system_prompt=research_instructions,
+            )
+            ```
+        </CodeGroup>
+    </Tab>
 </Tabs>
 
 
@@ -240,7 +282,7 @@ Now that you've built your first deep agent:
 
 - **Customize your agent**: Learn about [customization options](/oss/python/deepagents/customization), including custom system prompts, tools, and subagents.
 - **Add long-term memory**: Enable [persistent memory](/oss/python/deepagents/memory) across conversations.
-- **Deploy to production**: Learn about [deployment options](/oss/python/langgraph/deploy) for LangGraph applications.
+- **Deploy to production**: Learn about [deployment options](/oss/python/deepagents/deploy) for Deep Agents.
 
 ---
 

@@ -410,6 +410,7 @@
                 {
                   "group": "Feedback & evaluation",
                   "pages": [
+                    "langsmith/evaluators",
                     "langsmith/attach-user-feedback",
                     {
                       "group": "Set up online evaluators",
@@ -1027,6 +1028,7 @@
                     {
                       "group": "Deployment",
                       "pages": [
+                        "oss/python/deepagents/deploy",
                         "oss/python/deepagents/going-to-production"
                       ]
                     },
@@ -1756,6 +1758,7 @@
                         "oss/javascript/integrations/tools/index",
                         "oss/javascript/integrations/llms/index",
                         "oss/javascript/integrations/middleware/index",
+                        "oss/javascript/integrations/sandboxes/index",
                         "oss/javascript/integrations/stores/index",
                         "oss/javascript/integrations/document_transformers/index",
                         "oss/javascript/integrations/llm_caching/index",
