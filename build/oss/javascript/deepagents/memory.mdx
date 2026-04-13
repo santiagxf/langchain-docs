@@ -30,7 +30,7 @@ The key is the backend namespace: setting it to `(assistant_id,)` means every co
 
 
 <Note>
-Accessing `ctx.runtime.serverInfo` requires `deepagents>=1.9.0`. On older versions, read the assistant ID from `getConfig().metadata.assistantId` instead.
+Accessing `rt.serverInfo` requires `deepagents>=1.9.0`. On older versions, read the assistant ID from `getConfig().metadata.assistantId` instead.
 </Note>
 
 
@@ -46,10 +46,10 @@ const agent = createDeepAgent({
     new StateBackend(),
     {
       "/memories/": new StoreBackend({
-        namespace: (ctx) => [ctx.runtime.serverInfo.assistantId],  // [!code highlight]
+        namespace: (rt) => [rt.serverInfo.assistantId],  // [!code highlight]
       }),
       "/skills/": new StoreBackend({
-        namespace: (ctx) => [ctx.runtime.serverInfo.assistantId],  // [!code highlight]
+        namespace: (rt) => [rt.serverInfo.assistantId],  // [!code highlight]
       }),
     },
   ),
@@ -102,10 +102,10 @@ const agent = createDeepAgent({
     new StateBackend(rt),
     {
       "/memories/": new StoreBackend(rt, {
-        namespace: (ctx) => ["my-agent"],
+        namespace: (rt) => ["my-agent"],
       }),
       "/skills/": new StoreBackend(rt, {
-        namespace: (ctx) => ["my-agent"],
+        namespace: (rt) => ["my-agent"],
       }),
     },
   ),
@@ -146,10 +146,10 @@ const agent = createDeepAgent({
     new StateBackend(),
     {
       "/memories/": new StoreBackend({
-        namespace: (ctx) => [ctx.runtime.context.userId],
+        namespace: (rt) => [rt.serverInfo.user.identity],
       }),
       "/skills/": new StoreBackend({
-        namespace: (ctx) => [ctx.runtime.context.userId],
+        namespace: (rt) => [rt.serverInfo.user.identity],
       }),
     },
   ),
@@ -165,13 +165,8 @@ Seed per-user memories and invoke the agent as two different users. Each user se
 
 ```typescript
 import { v4 as uuidv4 } from "uuid";
-import { z } from "zod";
 import { createDeepAgent, CompositeBackend, StateBackend, StoreBackend, createFileData } from "deepagents";
 import { InMemoryStore } from "@langchain/langgraph";
-
-const contextSchema = z.object({
-  userId: z.string(),
-});
 
 const store = new InMemoryStore();  // Use platform store when deploying to LangSmith
 
@@ -211,33 +206,26 @@ Use the fetch_url tool to read https://docs.langchain.com/llms.txt, then fetch r
 const agent = createDeepAgent({
   memory: ["/memories/preferences.md"],
   skills: ["/skills/"],
-  contextSchema,
   backend: (rt) => new CompositeBackend(
     new StateBackend(rt),
     {
       "/memories/": new StoreBackend(rt, {
-        namespace: (ctx) => [ctx.runtime.context.userId],
+        namespace: (rt) => [rt.serverInfo.user.identity],
       }),
       "/skills/": new StoreBackend(rt, {
-        namespace: (ctx) => [ctx.runtime.context.userId],
+        namespace: (rt) => [rt.serverInfo.user.identity],
       }),
     },
   ),
   store,
 });
 
-// Alice's conversation — agent sees her preferences
+// When deployed, each authenticated request resolves
+// `rt.serverInfo.user.identity` to the calling user, so Alice and Bob
+// automatically see only their own preferences.
 await agent.invoke(
   { messages: [{ role: "user", content: "How do I read a CSV file?" }] },
   { configurable: { thread_id: uuidv4() } },
-  { context: { userId: "user-alice" } },
-);
-
-// Bob's conversation — agent sees his preferences, not Alice's
-await agent.invoke(
-  { messages: [{ role: "user", content: "How do I read a CSV file?" }] },
-  { configurable: { thread_id: uuidv4() } },
-  { context: { userId: "user-bob" } },
 );
 ```
 
@@ -336,10 +324,10 @@ const agent = createDeepAgent({
     new StateBackend(),
     {
       "/memories/": new StoreBackend({
-        namespace: (ctx) => [ctx.runtime.context.userId],
+        namespace: (rt) => [rt.serverInfo.user.identity],
       }),
       "/policies/": new StoreBackend({
-        namespace: (ctx) => [ctx.runtime.context.orgId],
+        namespace: (rt) => [rt.context.orgId],
       }),
     },
   ),
@@ -368,7 +356,7 @@ await client.store.putItem(
 ```
 
 
-Use [policy hooks](/oss/javascript/deepagents/backends#add-policy-hooks) to enforce that org-level memory is read-only.
+Use [permissions](/oss/javascript/deepagents/permissions) to enforce that org-level memory is read-only, or [policy hooks](/oss/javascript/deepagents/backends#add-policy-hooks) for custom validation logic.
 
 ### Background consolidation
 
@@ -502,7 +490,7 @@ By default, the agent can both read and write memory files. For shared state lik
 | Permission | Use case | How it works |
 |---|---|---|
 | **Read-write** (default) | User preferences, agent self-improvement, learned [skills](/oss/javascript/deepagents/skills) | Agent updates files via `edit_file` tool |
-| **Read-only** | Organization policies, compliance rules, shared knowledge bases, developer-defined [skills](/oss/javascript/deepagents/skills) | Populate via application code or the [Store API](/langsmith/custom-store). Use [policy hooks](/oss/javascript/deepagents/backends#add-policy-hooks) to block agent writes. |
+| **Read-only** | Organization policies, compliance rules, shared knowledge bases, developer-defined [skills](/oss/javascript/deepagents/skills) | Populate via application code or the [Store API](/langsmith/custom-store). Use [permissions](/oss/javascript/deepagents/permissions) to deny writes to specific paths, or [policy hooks](/oss/javascript/deepagents/backends#add-policy-hooks) for custom validation logic. |
 
 **Security considerations:** If one user can write to memory that another user reads, a malicious user could inject instructions into shared state. To mitigate this:
 
@@ -510,7 +498,7 @@ By default, the agent can both read and write memory files. For shared state lik
 - Use **read-only memory** for shared policies (populate via application code, not the agent)
 - Add **human-in-the-loop** validation before the agent writes to shared memory. Use an [interrupt](/oss/javascript/langgraph/interrupts) to require human approval for writes to sensitive paths.
 
-To enforce read-only memory, use [policy hooks](/oss/javascript/deepagents/backends#add-policy-hooks) on the backend to reject write operations to specific paths.
+To enforce read-only memory, use [permissions](/oss/javascript/deepagents/permissions) to declaratively deny writes to specific paths. For custom validation logic (rate limiting, audit logging, content inspection), use [backend policy hooks](/oss/javascript/deepagents/backends#add-policy-hooks).
 
 ### Concurrent writes
 
@@ -526,9 +514,9 @@ To give each agent its own memory in a shared deployment, add `assistant_id` to 
 
 ```typescript
 new StoreBackend({
-  namespace: (ctx) => [
-    ctx.runtime.serverInfo.assistantId,  // [!code highlight]
-    ctx.runtime.context.userId,
+  namespace: (rt) => [
+    rt.serverInfo.assistantId,  // [!code highlight]
+    rt.serverInfo.user.identity,
   ],
 })
 ```

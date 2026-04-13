@@ -154,7 +154,7 @@ Memory is always persistent across conversations. The main question is how it's 
 | **Global** | `(org_id)` | Read-only policies for all users and assistants | "Never disclose internal pricing" |
 
 <Warning>
-Shared memory (assistant, user, or organization scope) is a vector for prompt injection. If one user can write to memory that another user's conversation reads, a malicious user could inject instructions into that shared state. Enforce read-only access where appropriate. For example, make organization-wide policies writable only through application code, not by the agent itself.
+Shared memory (assistant, user, or organization scope) is a vector for prompt injection. If one user can write to memory that another user's conversation reads, a malicious user could inject instructions into that shared state. Enforce read-only access where appropriate. For example, make organization-wide policies writable only through application code, not by the agent itself. Use [permissions](/oss/javascript/deepagents/permissions) to declaratively deny writes to shared paths, or [backend policy hooks](/oss/javascript/deepagents/backends#add-policy-hooks) for custom validation logic.
 </Warning>
 
 ### Configuration
@@ -164,7 +164,7 @@ In Deep Agents, memory is stored as files in a virtual filesystem. By default, f
 
 
 <Note>
-The `ctx.runtime.serverInfo` and `ctx.runtime.executionInfo` namespace patterns shown below require `deepagents>=1.9.0`.
+The `rt.serverInfo` and `rt.executionInfo` namespace patterns shown below require `deepagents>=1.9.0`.
 </Note>
 
 
@@ -182,9 +182,9 @@ export const agent = createDeepAgent({
     new StateBackend(),
     {
       "/memories/": new StoreBackend({
-        namespace: (ctx) => [
-          ctx.runtime.serverInfo.assistantId,  // [!code highlight]
-          ctx.runtime.serverInfo.user.identity,  // [!code highlight]
+        namespace: (rt) => [
+          rt.serverInfo.assistantId,  // [!code highlight]
+          rt.serverInfo.user.identity,  // [!code highlight]
         ],
       }),
     },
@@ -212,7 +212,7 @@ export const agent = createDeepAgent({
     new StateBackend(),
     {
       "/memories/": new StoreBackend({
-        namespace: (ctx) => [ctx.runtime.serverInfo.assistantId],  // [!code highlight]
+        namespace: (rt) => [rt.serverInfo.assistantId],  // [!code highlight]
       }),
     },
   ),
@@ -234,7 +234,7 @@ export const agent = createDeepAgent({
     new StateBackend(),
     {
       "/memories/": new StoreBackend({
-        namespace: (ctx) => [ctx.runtime.serverInfo.user.identity],  // [!code highlight]
+        namespace: (rt) => [rt.serverInfo.user.identity],  // [!code highlight]
       }),
     },
   ),
@@ -256,7 +256,7 @@ export const agent = createDeepAgent({
     new StateBackend(),
     {
       "/memories/": new StoreBackend({
-        namespace: (ctx) => [ctx.runtime.context.orgId],
+        namespace: (rt) => [rt.context.orgId],
       }),
     },
   ),
@@ -528,10 +528,10 @@ const backend = new CompositeBackend(
   await DaytonaSandbox.fromId(sandbox.id),
   {
     "/skills/": new StoreBackend({
-      namespace: (ctx) => ["skills", ctx.runtime.serverInfo.user.identity],  // [!code highlight]
+      namespace: (rt) => ["skills", rt.serverInfo.user.identity],  // [!code highlight]
     }),
     "/memories/": new StoreBackend({
-      namespace: (ctx) => ["memories", ctx.runtime.serverInfo.user.identity],  // [!code highlight]
+      namespace: (rt) => ["memories", rt.serverInfo.user.identity],  // [!code highlight]
     }),
   },
 );
@@ -584,7 +584,10 @@ Avoid passing secrets into sandboxes via environment variables or file uploads. 
 
 ## Guardrails
 
-Agents in production run autonomously, which means they can loop indefinitely, hit rate limits, or process user data that contains sensitive information. Deep Agents support [middleware](/oss/javascript/langchain/middleware/built-in) that wraps model and tool calls to handle these concerns.
+Agents in production run autonomously, which means they can loop indefinitely, hit rate limits, or process user data that contains sensitive information. Deep Agents provide two layers of protection:
+
+- **[Permissions](/oss/javascript/deepagents/permissions)**: declarative allow/deny rules that control which files and directories the agent can read or write. Use permissions to isolate the agent to a working directory, protect sensitive files, or enforce read-only memory.
+- **[Middleware](/oss/javascript/langchain/middleware/built-in)**: hooks that wrap model and tool calls for rate limiting, error handling, and data privacy.
 
 ### Rate limiting
 
