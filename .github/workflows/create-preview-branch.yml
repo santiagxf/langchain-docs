@@ -215,6 +215,24 @@ jobs:
           echo ""
           echo "[INFO] 🔗 Branch URL: https://github.com/${{ github.repository }}/tree/$PREVIEW_BRANCH"
 
+      - name: Write preview branch metadata for downstream workflows
+        run: |
+          set -euo pipefail
+          echo "${{ steps.branch-name.outputs.branch_name }}" > preview_branch.txt
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "${{ github.event.pull_request.number }}" > pr_number.txt
+          else
+            : > pr_number.txt
+          fi
+
+      - name: Upload preview branch metadata artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-branch-metadata
+          path: |
+            preview_branch.txt
+            pr_number.txt
+
   comment-on-pr:
     # Only this job gets permission to write PR comments.
     permissions:
@@ -224,14 +242,161 @@ jobs:
     if: github.event_name == 'pull_request' && needs.create-preview.result == 'success'
 
     steps:
+      - name: Trigger Mintlify preview deployment
+        id: mintlify
+        env:
+          MINTLIFY_API_KEY: ${{ secrets.MINTLIFY_API_KEY }}
+          MINTLIFY_PROJECT_ID: ${{ secrets.MINTLIFY_PROJECT_ID }}
+          BRANCH: ${{ needs.create-preview.outputs.preview_branch }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${MINTLIFY_API_KEY:-}" ] || [ -z "${MINTLIFY_PROJECT_ID:-}" ]; then
+            echo "Missing required secrets."
+            echo "Set secrets.MINTLIFY_API_KEY (admin key starting with mint_) and secrets.MINTLIFY_PROJECT_ID."
+            exit 1
+          fi
+
+          if [ -z "${BRANCH:-}" ]; then
+            echo "Missing preview branch name from create-preview job."
+            exit 1
+          fi
+
+          echo "Triggering Mintlify preview for branch: ${BRANCH}"
+
+          response="$(curl -sS -X POST \
+            "https://api.mintlify.com/v1/project/preview/${MINTLIFY_PROJECT_ID}" \
+            -H "Authorization: Bearer ${MINTLIFY_API_KEY}" \
+            -H "Content-Type: application/json" \
+            --data "{\"branch\":\"${BRANCH}\"}")"
+
+          RESPONSE="$response" python -c 'import json,os,sys; resp=os.environ.get("RESPONSE","");
+          try: data=json.loads(resp) if resp else {}
+          except Exception: print("Failed to parse Mintlify API response as JSON.", file=sys.stderr); print(resp, file=sys.stderr); sys.exit(1)
+          status_id=(data.get("statusId","") or ""); preview_url=(data.get("previewUrl","") or ""); error=(data.get("error","") or "");
+          if error and not (status_id or preview_url): print(f"Mintlify API error: {error}", file=sys.stderr); sys.exit(1)
+          out=os.environ["GITHUB_OUTPUT"]; f=open(out,"a",encoding="utf-8"); f.write(f"status_id={status_id}\n"); f.write(f"preview_url={preview_url}\n"); f.close()'
+
+      - name: Wait for Mintlify preview to finish
+        id: wait
+        env:
+          MINTLIFY_API_KEY: ${{ secrets.MINTLIFY_API_KEY }}
+          STATUS_ID: ${{ steps.mintlify.outputs.status_id }}
+          # 15 minutes max, poll every 10 seconds
+          TIMEOUT_SECONDS: "900"
+          POLL_SECONDS: "10"
+        run: |
+          set -euo pipefail
+
+          if [ -z "${STATUS_ID:-}" ]; then
+            echo "No status_id returned from Mintlify; skipping wait."
+            exit 0
+          fi
+
+          deadline=$(( $(date +%s) + TIMEOUT_SECONDS ))
+          final_status=""
+          final_summary=""
+          final_preview_url=""
+
+          while true; do
+            now=$(date +%s)
+            if [ "$now" -ge "$deadline" ]; then
+              echo "Timed out waiting for Mintlify preview (status_id=${STATUS_ID})."
+              exit 1
+            fi
+
+            resp="$(curl -sS -X GET \
+              "https://api.mintlify.com/v1/project/update-status/${STATUS_ID}" \
+              -H "Authorization: Bearer ${MINTLIFY_API_KEY}" \
+              -H "Content-Type: application/json")"
+
+            status="$(jq -r '.status // ""' <<<"$resp" 2>/dev/null || true)"
+            summary="$(jq -r '.summary // ""' <<<"$resp" 2>/dev/null || true)"
+            preview_url="$(jq -r '.previewUrl // .preview_url // ""' <<<"$resp" 2>/dev/null || true)"
+
+            if [ -z "${status:-}" ] && [ -z "${summary:-}" ] && [ -z "${preview_url:-}" ]; then
+              echo "Failed to parse Mintlify status response as JSON."
+              echo "$resp"
+              status="PARSE_ERROR"
+            fi
+
+            current_status="$status"
+            current_summary="$summary"
+            current_preview_url="$preview_url"
+
+            echo "Mintlify status: ${current_status:-unknown}"
+
+            if [ -n "${current_status:-}" ] && [ "${current_status}" != "PARSE_ERROR" ]; then
+              final_status="$current_status"
+              final_summary="$current_summary"
+              if [ -n "${current_preview_url:-}" ]; then
+                final_preview_url="$current_preview_url"
+              fi
+            fi
+
+            if [ "${final_status:-}" = "success" ]; then
+              break
+            fi
+            if [ "${final_status:-}" = "failure" ]; then
+              echo "Mintlify preview failed (status_id=${STATUS_ID})."
+              break
+            fi
+
+            sleep "$POLL_SECONDS"
+          done
+
+          echo "status=${final_status}" >> "$GITHUB_OUTPUT"
+          echo "summary=${final_summary}" >> "$GITHUB_OUTPUT"
+          if [ -n "${final_preview_url:-}" ]; then
+            echo "preview_url=${final_preview_url}" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ "${final_status:-}" = "failure" ]; then
+            exit 1
+          fi
+
       - name: Comment on PR
         uses: actions/github-script@v8
         with:
           script: |
             const preview = `${{ needs.create-preview.outputs.preview_branch }}`;
+            const previewUrl = `${{ steps.wait.outputs.preview_url || steps.mintlify.outputs.preview_url }}`;
+            const statusId = `${{ steps.mintlify.outputs.status_id }}`;
+            const lines = [];
+            lines.push(`Mintlify preview branch generated: \`${preview}\``);
+            if (previewUrl) lines.push(`Preview URL: ${previewUrl}`);
+            if (statusId) lines.push(`Status ID: \`${statusId}\``);
+            const body = lines.join('\n');
+
+            // Remove prior preview comments created by this workflow
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              per_page: 100,
+            });
+
+            const shouldDelete = (commentBody) => {
+              if (!commentBody) return false;
+              return (
+                commentBody.includes('Mintlify preview branch generated:') ||
+                commentBody.includes('Mintlify preview ID generated:') ||
+                commentBody.includes('## Mintlify preview')
+              );
+            };
+
+            const toDelete = comments.filter(c => c.user?.type === 'Bot' && shouldDelete(c.body));
+            for (const c of toDelete) {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: c.id,
+              });
+            }
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `Mintlify preview ID generated: ${preview}`
+              body,
             });
