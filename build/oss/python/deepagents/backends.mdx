@@ -499,7 +499,9 @@ class PolicyWrapper(BackendProtocol):
 ## Migrate from backend factories
 
 <Warning>
-The backend factory pattern is **deprecated**. Pass pre-constructed backend instances directly instead of factory functions.
+The backend factory pattern is **deprecated** as of `deepagents` 0.5.0. Pass pre-constructed backend instances directly instead of factory functions.
+
+
 </Warning>
 
 Previously, backends like `StateBackend` and `StoreBackend` required a factory function that received a runtime object, because they needed runtime context (state, store) to operate. Backends now resolve this context internally via LangGraph's `get_config()`, `get_store()`, and `get_runtime()` helpers, so you can pass instances directly.
