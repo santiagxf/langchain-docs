@@ -504,7 +504,7 @@ from azure.identity import DefaultAzureCredential
 from langchain_azure_ai.tools import AzureAIProjectToolbox
 from langchain.agents import create_agent
 from langchain.chat_models import init_chat_model
-from langchain_core.messages import HumanMessage
+from langchain.messages import HumanMessage
 
 async def main():
     toolbox = AzureAIProjectToolbox(
