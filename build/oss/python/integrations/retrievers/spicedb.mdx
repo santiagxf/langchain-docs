@@ -3,6 +3,8 @@ title: SpiceDB Retriever
 sidebar_label: SpiceDB
 ---
 
+import LangchainCommunityUnmaintained from '/snippets/oss/langchain-community-unmaintained.mdx';
+
 The `SpiceDBRetriever` is a LangChain `BaseRetriever` that wraps any existing retriever with SpiceDB authorization. It follows the post-filter authorization pattern: retrieve documents based on semantic search first, then filter by user permissions.
 
 ## Installation
@@ -421,10 +423,10 @@ print(f"Bob's answer: {bob_answer}")
 ---
 
 <div className="source-links">
-<Callout icon="edit">
-    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/python/integrations/retrievers/spicedb.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
-</Callout>
 <Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
+</Callout>
+<Callout icon="edit">
+    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/python/integrations/retrievers/spicedb.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
 </div>

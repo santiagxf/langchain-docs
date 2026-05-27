@@ -43,7 +43,7 @@ from deepagents_acp.server import AgentServerACP
 
 async def main() -> None:
     agent = create_deep_agent(
-        model="google_genai:gemini-3.1-pro-preview",
+        model="google_genai:gemini-3.5-flash",
         # You can customize your deep agent here: set a custom prompt,
         # add your own tools, attach middleware, or compose subagents.
         system_prompt="You are a helpful coding assistant",
@@ -112,7 +112,7 @@ Then set `ANTHROPIC_API_KEY` in `.env`.
 }
 ```
 
-4. Open Zed's Agents panel and start a DeepAgents thread.
+4. Open Zed's Agents panel and start a Deep Agents thread.
 
 
 
@@ -148,10 +148,10 @@ toad acp "uv run python path/to/your_server.py" .
 ---
 
 <div className="source-links">
-<Callout icon="edit">
-    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/deepagents/acp.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
-</Callout>
 <Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
+</Callout>
+<Callout icon="edit">
+    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/deepagents/acp.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
 </div>

@@ -10,7 +10,7 @@ import secret from '/snippets/langsmith/set-workspace-secrets.mdx';
 
 Polly helps you gain insight from your traces, conversation threads, and prompts without having to dig through data manually. By asking natural language questions, you can quickly understand agent performance, debug issues, and analyze user sentiment.
 
-<img src="/images/brand/polly-icon.png" alt="LangSmith Polly icon" style={{float: 'left', marginRight: '20px', marginTop: '-1px', marginBottom: '20px', maxWidth: '100px'}} /> Polly appears in the right-hand bottom corner of the following locations within [LangSmith UI](https://smith.langchain.com):
+<img src="/images/brand/polly-icon.png" alt="LangSmith Polly icon" style={{float: 'left', marginRight: '20px', marginTop: '-1px', marginBottom: '20px', maxWidth: '100px'}} /> Polly appears in the right-hand bottom corner of the following locations within [LangSmith UI](https://smith.langchain.com?utm_source=docs&utm_medium=cta&utm_campaign=langsmith-signup&utm_content=langsmith-polly):
 
 <br></br><br></br>**Observability & Debugging:**
 - [Projects](#projects): Browse and filter runs across a project.
@@ -44,6 +44,10 @@ alt="Polly chat in the sidebar on a dataset view."
 Before you start using Polly, you need to add an API key for the model you're using:
 
 <secret/>
+
+<Note>
+Polly calls model providers from LangSmith's egress IP addresses. If your model provider (or a proxy in front of it) restricts traffic by IP, allowlist the LangSmith egress IPs listed in [Allowlist IP addresses](/langsmith/deploy-to-cloud#allowlist-ip-addresses).
+</Note>
 
 ### Supported models
 
@@ -205,10 +209,10 @@ Learn more about the features that Polly helps you explore:
 ---
 
 <div className="source-links">
-<Callout icon="edit">
-    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/langsmith/polly.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
-</Callout>
 <Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
+</Callout>
+<Callout icon="edit">
+    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/langsmith/polly.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
 </div>

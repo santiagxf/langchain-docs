@@ -3,6 +3,8 @@ title: "Localai integration"
 description: "Integrate with the Localai embedding model using LangChain Python."
 ---
 
+import LangchainCommunityUnmaintained from '/snippets/oss/langchain-community-unmaintained.mdx';
+
 <Info>
 **`langchain-localai` is a 3rd party integration package for LocalAI. It provides a simple way to use LocalAI services in LangChain.**
 
@@ -40,6 +42,8 @@ Let's load the LocalAI Embedding class with embeddings model.
 pip install -U langchain-community
 ```
 
+<LangchainCommunityUnmaintained />
+
 ```python
 from langchain_community.embeddings import LocalAIEmbeddings
 import os
@@ -59,10 +63,10 @@ doc_result = embeddings.embed_documents([text])
 ---
 
 <div className="source-links">
-<Callout icon="edit">
-    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/python/integrations/embeddings/localai.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
-</Callout>
 <Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
+</Callout>
+<Callout icon="edit">
+    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/python/integrations/embeddings/localai.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
 </div>

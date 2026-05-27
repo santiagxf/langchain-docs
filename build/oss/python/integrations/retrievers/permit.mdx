@@ -3,6 +3,8 @@ title: "Permit integration"
 description: "Integrate with the Permit retriever using LangChain Python."
 ---
 
+import LangchainCommunityUnmaintained from '/snippets/oss/langchain-community-unmaintained.mdx';
+
 Permit is an access control platform that provides fine-grained, real-time permission management using various models such as RBAC, ABAC, and ReBAC. It enables organizations to enforce dynamic policies across their applications, ensuring that only authorized users can access specific resources.
 
 ### Integration details
@@ -63,6 +65,8 @@ pip install -qU langchain-permit
 
 #### Basic usage
 
+<LangchainCommunityUnmaintained />
+
 ```python
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -100,6 +104,8 @@ for doc in results:
 2. After retrieving documents, it calls filter_objects on Permit to eliminate any docs the user isn’t allowed to see.
 
 #### Basic usage
+
+<LangchainCommunityUnmaintained />
 
 ```python
 from langchain_community.retrievers import BM25Retriever
@@ -210,10 +216,10 @@ For detailed documentation of all `PermitRetriever` features and configurations 
 ---
 
 <div className="source-links">
-<Callout icon="edit">
-    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/python/integrations/retrievers/permit.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
-</Callout>
 <Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
+</Callout>
+<Callout icon="edit">
+    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/python/integrations/retrievers/permit.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
 </div>

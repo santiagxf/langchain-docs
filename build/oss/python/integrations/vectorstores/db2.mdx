@@ -3,6 +3,8 @@ title: "IBM db2 vector store and vector search integration"
 description: "Integrate with the IBM db2 vector store and vector search vector store using LangChain Python."
 ---
 
+import LangchainCommunityUnmaintained from '/snippets/oss/langchain-community-unmaintained.mdx';
+
 LangChain's Db2 integration (langchain-db2) provides vector store and vector search capabilities for working with IBM relational database Db2 version v12.1.2 and above, distributed under the MIT license. Users can use the provided implementations as-is or customize them for specific needs.
  Key features include:
 
@@ -43,6 +45,8 @@ except Exception as e:
 ```
 
 ### Import the required dependencies
+
+<LangchainCommunityUnmaintained />
 
 ```python
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -227,10 +231,10 @@ conduct_advanced_searches(vector_store_list)
 ---
 
 <div className="source-links">
-<Callout icon="edit">
-    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/python/integrations/vectorstores/db2.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
-</Callout>
 <Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
+</Callout>
+<Callout icon="edit">
+    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/python/integrations/vectorstores/db2.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
 </div>

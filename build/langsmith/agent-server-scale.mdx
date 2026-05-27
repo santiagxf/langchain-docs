@@ -62,11 +62,11 @@ async def my_function():
     await asyncio.sleep(1)
 ```
 
-If an assistant requires synchronous blocking operations, set [`BG_JOB_ISOLATED_LOOPS`](/langsmith/env-var#bg_job_isolated_loops) to `True` to execute each run in a separate event loop.
+If an assistant requires synchronous blocking operations, run those in `asyncio.to_thread()` or equivalent.
 
 #### Minimize redundant checkpointing
 
-Minimize redundant checkpointing by setting [`durability`](/oss/python/langgraph/durable-execution#durability-modes) to the minimum value necessary to ensure your data is durable.
+Minimize redundant checkpointing by setting [`durability`](/oss/python/langgraph/persistence#durability-modes) to the minimum value necessary to ensure your data is durable.
 
 The default durability mode is `"async"`, meaning checkpoints are written after each step asynchronously. If an assistant needs to persist only the final state of the run, `durability` can be set to `"exit"`, storing only the final state of the run. This can be set when creating the run:
 
@@ -409,10 +409,10 @@ Ensure that your deployment environment has sufficient resources to scale to the
 ---
 
 <div className="source-links">
-<Callout icon="edit">
-    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/langsmith/agent-server-scale.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
-</Callout>
 <Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
+</Callout>
+<Callout icon="edit">
+    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/langsmith/agent-server-scale.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
 </div>

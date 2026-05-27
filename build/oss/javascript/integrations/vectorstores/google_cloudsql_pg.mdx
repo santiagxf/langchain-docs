@@ -121,7 +121,6 @@ const vectorStore = await PostgresVectorStore.initialize(
 To add Documents to the vector store, you would be able to it by passing or not the ids
 
 ```python
-import { v4 as uuidv4 } from "uuid";
 import type { Document } from "@langchain/core/documents";
 
 const document1: Document = {
@@ -146,7 +145,7 @@ const document4: Document = {
 
 const documents = [document1, document2, document3, document4];
 
-const ids = [uuidv4(), uuidv4(), uuidv4(), uuidv4()];
+const ids = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()];
 
 await vectorStore.addDocuments(documents, { ids: ids });
 
@@ -224,10 +223,10 @@ for (const doc of results) {
 ---
 
 <div className="source-links">
-<Callout icon="edit">
-    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/javascript/integrations/vectorstores/google_cloudsql_pg.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
-</Callout>
 <Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
+</Callout>
+<Callout icon="edit">
+    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/javascript/integrations/vectorstores/google_cloudsql_pg.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
 </div>

@@ -3,6 +3,10 @@ title: Streaming
 description: Stream real-time updates from deep agent runs and subagent execution
 ---
 
+<Tip>
+For new applications, we recommend [event streaming](/oss/javascript/deepagents/event-streaming)—the typed-projection API introduced in Deep Agents v0.6. Event streaming gives you separate iterators per projection (subagents, messages, tool calls, values) so you can consume them independently instead of branching on `stream_mode` chunks.
+</Tip>
+
 Deep Agents build on LangGraph's streaming infrastructure with first-class support for subagent streams. When a deep agent delegates work to subagents, you can stream updates from each subagent independently—tracking progress, LLM tokens, and tool calls in real time.
 
 What's possible with deep agent streaming:
@@ -520,15 +524,15 @@ for (const [id, sub] of activeSubagents) {
 
 - [Subagents](/oss/javascript/deepagents/subagents)—Configure and use subagents with Deep Agents
 - [Frontend streaming](/oss/javascript/deepagents/streaming/frontend)—Build React UIs with `useStream` for Deep Agents
-- [LangChain streaming overview](/oss/javascript/langchain/streaming/overview)—General streaming concepts with LangChain agents
+- [LangChain Event Streaming](/oss/javascript/langchain/event-streaming)—General streaming concepts with LangChain agents
 
 ---
 
 <div className="source-links">
-<Callout icon="edit">
-    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/deepagents/streaming.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
-</Callout>
 <Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
+</Callout>
+<Callout icon="edit">
+    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/oss/deepagents/streaming.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
 </div>

@@ -44,8 +44,10 @@ Roles and resource tags can be managed via the UI or API. ABAC policies are conf
 
     ```bash
     export LANGSMITH_API_KEY="your_admin_api_key"
-    # Required for self-hosted or EU deployments:
+    # Required for self-hosted or regional SaaS deployments:
     # export LANGCHAIN_ENDPOINT="https://eu.api.smith.langchain.com"
+    # export LANGCHAIN_ENDPOINT="https://aws.api.smith.langchain.com"
+    # export LANGCHAIN_ENDPOINT="https://apac.api.smith.langchain.com"
     # export LANGCHAIN_ENDPOINT="https://langsmith.yourdomain.com/api"
     ```
 
@@ -325,10 +327,10 @@ Consultants don't have RBAC `datasets:read` permission, but this policy grants t
 ---
 
 <div className="source-links">
-<Callout icon="edit">
-    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/langsmith/abac.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
-</Callout>
 <Callout icon="terminal-2">
     [Connect these docs](/use-these-docs) to Claude, VSCode, and more via MCP for real-time answers.
+</Callout>
+<Callout icon="edit">
+    [Edit this page on GitHub](https://github.com/langchain-ai/docs/edit/main/src/langsmith/abac.mdx) or [file an issue](https://github.com/langchain-ai/docs/issues/new/choose).
 </Callout>
 </div>
