@@ -5,7 +5,7 @@ hidden: true
 ---
 
 <Note>
-**Private beta:** The LLM Gateway is in private beta. [Sign up for the waitlist](https://www.langchain.com/langsmith-llm-gateway-waitlist) to get access.
+**Private beta:** The LLM Gateway is in private [beta](/langsmith/release-stages). [Sign up for the waitlist](https://www.langchain.com/langsmith-llm-gateway-waitlist) to get access.
 </Note>
 
 One-time setup to enable the LLM Gateway for your LangSmith [organization](/langsmith/administration-overview#organizations). [Organization admins](/langsmith/rbac#organization-admin) should complete this before individual users can route calls through the gateway.
@@ -28,9 +28,13 @@ Go to **Settings → Integrations → Provider Secrets** and add the keys for th
 
 | Secret name | Provider |
 | --- | --- |
-| `ANTHROPIC_API_KEY` | Anthropic (Claude models) |
-| `OPENAI_API_KEY` | OpenAI (GPT models) |
-| `GOOGLE_API_KEY` | Google (Gemini models) |
+| `ANTHROPIC_API_KEY` | Anthropic |
+| `AWS_BEARER_TOKEN_BEDROCK` | AWS Bedrock |
+| `BASETEN_API_KEY` | Baseten |
+| `FIREWORKS_API_KEY` | Fireworks |
+| `GOOGLE_API_KEY` | Google Gemini |
+| `OPENAI_API_KEY` | OpenAI |
+| `VERTEX_SERVICE_ACCOUNT_JSON` | Google Vertex AI |
 
 Add only the providers your organization uses. The gateway will return an error if a user tries to call a provider whose key hasn't been added.
 

@@ -3,7 +3,6 @@ title: Memory
 ---
 
 
-
 AI applications need [memory](/oss/python/concepts/memory) to share context across multiple interactions. In LangGraph, you can add two types of memory:
 
 * [Add short-term memory](#add-short-term-memory) as a part of your agent's [state](/oss/python/langgraph/graph-api#state) to enable multi-turn conversations.
@@ -38,7 +37,7 @@ In production, use a checkpointer backed by a database:
 ```python
 from langgraph.checkpoint.postgres import PostgresSaver
 
-DB_URI = "postgresql://postgres:postgres@localhost:5442/postgres?sslmode=disable"
+DB_URI = "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
 with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight]
     builder = StateGraph(...)
     graph = builder.compile(checkpointer=checkpointer)  # [!code highlight]
@@ -65,7 +64,7 @@ with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight
 
       model = init_chat_model(model="claude-haiku-4-5-20251001")
 
-      DB_URI = "postgresql://postgres:postgres@localhost:5442/postgres?sslmode=disable"
+      DB_URI = "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
       with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight]
           # checkpointer.setup()
 
@@ -85,19 +84,21 @@ with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight
               }
           }
 
-          for chunk in graph.stream(
+          stream = graph.stream_events(
               {"messages": [{"role": "user", "content": "hi! I'm bob"}]},
               config,  # [!code highlight]
-              stream_mode="values"
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          for snapshot in stream.values:
+              print(snapshot)
 
-          for chunk in graph.stream(
+          stream = graph.stream_events(
               {"messages": [{"role": "user", "content": "what's my name?"}]},
               config,  # [!code highlight]
-              stream_mode="values"
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          for snapshot in stream.values:
+              print(snapshot)
 ```
         </Tab>
         <Tab title="Async">
@@ -108,7 +109,7 @@ with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight
 
       model = init_chat_model(model="claude-haiku-4-5-20251001")
 
-      DB_URI = "postgresql://postgres:postgres@localhost:5442/postgres?sslmode=disable"
+      DB_URI = "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
       async with AsyncPostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight]
           # await checkpointer.setup()
 
@@ -128,19 +129,23 @@ with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight
               }
           }
 
-          async for chunk in graph.astream(
+          stream = await graph.astream_events(
               {"messages": [{"role": "user", "content": "hi! I'm bob"}]},
               config,  # [!code highlight]
-              stream_mode="values"
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          async for message in stream.messages:
+              async for token in message.text:
+                  print(token, end="", flush=True)
 
-          async for chunk in graph.astream(
+          stream = await graph.astream_events(
               {"messages": [{"role": "user", "content": "what's my name?"}]},
               config,  # [!code highlight]
-              stream_mode="values"
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          async for message in stream.messages:
+              async for token in message.text:
+                  print(token, end="", flush=True)
 ```
         </Tab>
     </Tabs>
@@ -187,19 +192,21 @@ with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight
               }
           }
 
-          for chunk in graph.stream(
+          stream = graph.stream_events(
               {"messages": [{"role": "user", "content": "hi! I'm bob"}]},
               config,  # [!code highlight]
-              stream_mode="values"
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          for snapshot in stream.values:
+              print(snapshot)
 
-          for chunk in graph.stream(
+          stream = graph.stream_events(
               {"messages": [{"role": "user", "content": "what's my name?"}]},
               config,  # [!code highlight]
-              stream_mode="values"
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          for snapshot in stream.values:
+              print(snapshot)
 ```
         </Tab>
         <Tab title="Async">
@@ -229,19 +236,23 @@ with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight
               }
           }
 
-          async for chunk in graph.astream(
+          stream = await graph.astream_events(
               {"messages": [{"role": "user", "content": "hi! I'm bob"}]},
               config,  # [!code highlight]
-              stream_mode="values"
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          async for message in stream.messages:
+              async for token in message.text:
+                  print(token, end="", flush=True)
 
-          async for chunk in graph.astream(
+          stream = await graph.astream_events(
               {"messages": [{"role": "user", "content": "what's my name?"}]},
               config,  # [!code highlight]
-              stream_mode="values"
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          async for message in stream.messages:
+              async for token in message.text:
+                  print(token, end="", flush=True)
 ```
         </Tab>
     </Tabs>
@@ -288,19 +299,21 @@ with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight
               }
           }
 
-          for chunk in graph.stream(
+          stream = graph.stream_events(
               {"messages": [{"role": "user", "content": "hi! I'm bob"}]},
               config,  # [!code highlight]
-              stream_mode="values"
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          for snapshot in stream.values:
+              print(snapshot)
 
-          for chunk in graph.stream(
+          stream = graph.stream_events(
               {"messages": [{"role": "user", "content": "what's my name?"}]},
               config,  # [!code highlight]
-              stream_mode="values"
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          for snapshot in stream.values:
+              print(snapshot)
       ```
         </Tab>
         <Tab title="Async">
@@ -331,19 +344,23 @@ with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight
               }
           }
 
-          async for chunk in graph.astream(
+          stream = await graph.astream_events(
               {"messages": [{"role": "user", "content": "hi! I'm bob"}]},
               config,  # [!code highlight]
-              stream_mode="values"
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          async for message in stream.messages:
+              async for token in message.text:
+                  print(token, end="", flush=True)
 
-          async for chunk in graph.astream(
+          stream = await graph.astream_events(
               {"messages": [{"role": "user", "content": "what's my name?"}]},
               config,  # [!code highlight]
-              stream_mode="values"
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          async for message in stream.messages:
+              async for token in message.text:
+                  print(token, end="", flush=True)
 ```
         </Tab>
     </Tabs>
@@ -392,19 +409,21 @@ with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight
               }
           }
 
-          for chunk in graph.stream(
+          stream = graph.stream_events(
               {"messages": [{"role": "user", "content": "hi! I'm bob"}]},
               config,  # [!code highlight]
-              stream_mode="values"
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          for snapshot in stream.values:
+              print(snapshot)
 
-          for chunk in graph.stream(
+          stream = graph.stream_events(
               {"messages": [{"role": "user", "content": "what's my name?"}]},
               config,  # [!code highlight]
-              stream_mode="values"
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          for snapshot in stream.values:
+              print(snapshot)
 ```
         </Tab>
         <Tab title="Async">
@@ -435,19 +454,23 @@ with PostgresSaver.from_conn_string(DB_URI) as checkpointer:  # [!code highlight
               }
           }
 
-          async for chunk in graph.astream(
+          stream = await graph.astream_events(
               {"messages": [{"role": "user", "content": "hi! I'm bob"}]},
               config,  # [!code highlight]
-              stream_mode="values"
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          async for message in stream.messages:
+              async for token in message.text:
+                  print(token, end="", flush=True)
 
-          async for chunk in graph.astream(
+          stream = await graph.astream_events(
               {"messages": [{"role": "user", "content": "what's my name?"}]},
               config,  # [!code highlight]
-              stream_mode="values"
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          async for message in stream.messages:
+              async for token in message.text:
+                  print(token, end="", flush=True)
 ```
         </Tab>
     </Tabs>
@@ -571,7 +594,7 @@ In production, use a store backed by a database:
 ```python
 from langgraph.store.postgres import PostgresStore
 
-DB_URI = "postgresql://postgres:postgres@localhost:5442/postgres?sslmode=disable"
+DB_URI = "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
 with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
     builder = StateGraph(...)
     graph = builder.compile(store=store)  # [!code highlight]
@@ -627,7 +650,7 @@ with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
           )
           return {"messages": response}
 
-      DB_URI = "postgresql://postgres:postgres@localhost:5442/postgres?sslmode=disable"
+      DB_URI = "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
 
       async with (
           AsyncPostgresStore.from_conn_string(DB_URI) as store,  # [!code highlight]
@@ -646,22 +669,26 @@ with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
           )
 
           config = {"configurable": {"thread_id": "1"}}
-          async for chunk in graph.astream(
+          stream = await graph.astream_events(
               {"messages": [{"role": "user", "content": "Hi! Remember: my name is Bob"}]},
               config,
-              stream_mode="values",
+              version="v3",
               context=Context(user_id="1"),  # [!code highlight]
-          ):
-              chunk["messages"][-1].pretty_print()
+          )
+          async for message in stream.messages:
+              async for token in message.text:
+                  print(token, end="", flush=True)
 
           config = {"configurable": {"thread_id": "2"}}
-          async for chunk in graph.astream(
+          stream = await graph.astream_events(
               {"messages": [{"role": "user", "content": "what is my name?"}]},
               config,
-              stream_mode="values",
+              version="v3",
               context=Context(user_id="1"),  # [!code highlight]
-          ):
-              chunk["messages"][-1].pretty_print()
+          )
+          async for message in stream.messages:
+              async for token in message.text:
+                  print(token, end="", flush=True)
 ```
         </Tab>
         <Tab title="Sync">
@@ -701,7 +728,7 @@ with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
           )
           return {"messages": response}
 
-      DB_URI = "postgresql://postgres:postgres@localhost:5442/postgres?sslmode=disable"
+      DB_URI = "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
 
       with (
           PostgresStore.from_conn_string(DB_URI) as store,  # [!code highlight]
@@ -720,22 +747,24 @@ with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
           )
 
           config = {"configurable": {"thread_id": "1"}}
-          for chunk in graph.stream(
+          stream = graph.stream_events(
               {"messages": [{"role": "user", "content": "Hi! Remember: my name is Bob"}]},
               config,
-              stream_mode="values",
+              version="v3",
               context=Context(user_id="1"),  # [!code highlight]
-          ):
-              chunk["messages"][-1].pretty_print()
+          )
+          for snapshot in stream.values:
+              print(snapshot)
 
           config = {"configurable": {"thread_id": "2"}}
-          for chunk in graph.stream(
+          stream = graph.stream_events(
               {"messages": [{"role": "user", "content": "what is my name?"}]},
               config,
-              stream_mode="values",
+              version="v3",
               context=Context(user_id="1"),  # [!code highlight]
-          ):
-              chunk["messages"][-1].pretty_print()
+          )
+          for snapshot in stream.values:
+              print(snapshot)
 ```
         </Tab>
     </Tabs>
@@ -815,22 +844,24 @@ with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
           )
 
           config = {"configurable": {"thread_id": "1"}}
-          async for chunk in graph.astream(
+          stream = await graph.astream_events(
               {"messages": [{"role": "user", "content": "Hi! Remember: my name is Bob"}]},
               config,
-              stream_mode="values",
+              version="v3",
               context=Context(user_id="1"),  # [!code highlight]
-          ):
-              chunk["messages"][-1].pretty_print()
+          )
+          async for snapshot in stream.values:
+              snapshot["messages"][-1].pretty_print()
 
           config = {"configurable": {"thread_id": "2"}}
-          async for chunk in graph.astream(
+          stream = await graph.astream_events(
               {"messages": [{"role": "user", "content": "what is my name?"}]},
               config,
-              stream_mode="values",
+              version="v3",
               context=Context(user_id="1"),  # [!code highlight]
-          ):
-              chunk["messages"][-1].pretty_print()
+          )
+          async for snapshot in stream.values:
+              snapshot["messages"][-1].pretty_print()
 ```
         </Tab>
         <Tab title="Sync">
@@ -889,22 +920,24 @@ with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
           )
 
           config = {"configurable": {"thread_id": "1"}}
-          for chunk in graph.stream(
+          stream = graph.stream_events(
               {"messages": [{"role": "user", "content": "Hi! Remember: my name is Bob"}]},
               config,
-              stream_mode="values",
+              version="v3",
               context=Context(user_id="1"),  # [!code highlight]
-          ):
-              chunk["messages"][-1].pretty_print()
+          )
+          for snapshot in stream.values:
+              snapshot["messages"][-1].pretty_print()
 
           config = {"configurable": {"thread_id": "2"}}
-          for chunk in graph.stream(
+          stream = graph.stream_events(
               {"messages": [{"role": "user", "content": "what is my name?"}]},
               config,
-              stream_mode="values",
+              version="v3",
               context=Context(user_id="1"),  # [!code highlight]
-          ):
-              chunk["messages"][-1].pretty_print()
+          )
+          for snapshot in stream.values:
+              snapshot["messages"][-1].pretty_print()
 ```
         </Tab>
     </Tabs>
@@ -991,12 +1024,13 @@ with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
                   "user_id": "1",  # [!code highlight]
               }
           }
-          for chunk in graph.stream(
+          stream = graph.stream_events(
               {"messages": [{"role": "user", "content": "Hi! Remember: my name is Bob"}]},
               config,  # [!code highlight]
-              stream_mode="values",
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          for snapshot in stream.values:
+              snapshot["messages"][-1].pretty_print()
 
           config = {
               "configurable": {
@@ -1005,12 +1039,13 @@ with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
               }
           }
 
-          for chunk in graph.stream(
+          stream = graph.stream_events(
               {"messages": [{"role": "user", "content": "what is my name?"}]},
               config,  # [!code highlight]
-              stream_mode="values",
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          for snapshot in stream.values:
+              snapshot["messages"][-1].pretty_print()
 ```
         </Tab>
         <Tab title="Async">
@@ -1078,12 +1113,13 @@ with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
                   "user_id": "1",  # [!code highlight]
               }
           }
-          async for chunk in graph.astream(
+          stream = await graph.astream_events(
               {"messages": [{"role": "user", "content": "Hi! Remember: my name is Bob"}]},
               config,  # [!code highlight]
-              stream_mode="values",
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          async for snapshot in stream.values:
+              snapshot["messages"][-1].pretty_print()
 
           config = {
               "configurable": {
@@ -1092,12 +1128,13 @@ with PostgresStore.from_conn_string(DB_URI) as store:  # [!code highlight]
               }
           }
 
-          async for chunk in graph.astream(
+          stream = await graph.astream_events(
               {"messages": [{"role": "user", "content": "what is my name?"}]},
               config,  # [!code highlight]
-              stream_mode="values",
-          ):
-              chunk["messages"][-1].pretty_print()
+              version="v3",
+          )
+          async for snapshot in stream.values:
+              snapshot["messages"][-1].pretty_print()
 ```
         </Tab>
     </Tabs>
@@ -1178,11 +1215,13 @@ items = store.search(
     builder.add_edge(START, "chat")
     graph = builder.compile(store=store)
 
-    async for message, metadata in graph.astream(
-        input={"messages": [{"role": "user", "content": "I'm hungry"}]},
-        stream_mode="messages",
-    ):
-        print(message.content, end="")
+    stream = await graph.astream_events(
+        {"messages": [{"role": "user", "content": "I'm hungry"}]},
+        version="v3",
+    )
+    async for message in stream.messages:
+        async for token in message.text:
+            print(token, end="", flush=True)
     ```
 
 
@@ -1342,19 +1381,21 @@ When deleting messages, **make sure** that the resulting message history is vali
   checkpointer = InMemorySaver()
   app = builder.compile(checkpointer=checkpointer)
 
-  for event in app.stream(
+  stream = app.stream_events(
       {"messages": [{"role": "user", "content": "hi! I'm bob"}]},
       config,
-      stream_mode="values"
-  ):
-      print([(message.type, message.content) for message in event["messages"]])
+      version="v3"
+  )
+  for snapshot in stream.values:
+      print([(message.type, message.content) for message in snapshot["messages"]])
 
-  for event in app.stream(
+  stream = app.stream_events(
       {"messages": [{"role": "user", "content": "what's my name?"}]},
       config,
-      stream_mode="values"
-  ):
-      print([(message.type, message.content) for message in event["messages"]])
+      version="v3"
+  )
+  for snapshot in stream.values:
+      print([(message.type, message.content) for message in snapshot["messages"]])
 ```
 
   ```

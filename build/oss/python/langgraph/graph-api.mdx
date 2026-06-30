@@ -7,7 +7,11 @@ import GraphApiUsingTasksOriginalJs from '/snippets/code-samples/graph-api-using
 import GraphApiUsingTasksOriginalPy from '/snippets/code-samples/graph-api-using-tasks-original-py.mdx';
 import GraphApiUsingTasksTaskJs from '/snippets/code-samples/graph-api-using-tasks-task-js.mdx';
 import GraphApiUsingTasksTaskPy from '/snippets/code-samples/graph-api-using-tasks-task-py.mdx';
+import LanggraphGraphApiMultipleSchemasJs from '/snippets/code-samples/langgraph-graph-api-multiple-schemas-js.mdx';
+import LanggraphGraphApiMultipleSchemasPy from '/snippets/code-samples/langgraph-graph-api-multiple-schemas-py.mdx';
 import LanggraphGraphApiResumeV2Py from '/snippets/code-samples/langgraph-graph-api-resume-v2-py.mdx';
+import LanggraphGraphApiStreamPrivateChannelJs from '/snippets/code-samples/langgraph-graph-api-stream-private-channel-js.mdx';
+import LanggraphGraphApiStreamPrivateChannelPy from '/snippets/code-samples/langgraph-graph-api-stream-private-channel-py.mdx';
 
 ## Graphs
 
@@ -84,46 +88,7 @@ It is also possible to define explicit input and output schemas for a graph. In 
 
 Let's look at an example:
 
-```python
-class InputState(TypedDict):
-    user_input: str
-
-class OutputState(TypedDict):
-    graph_output: str
-
-class OverallState(TypedDict):
-    foo: str
-    user_input: str
-    graph_output: str
-
-class PrivateState(TypedDict):
-    bar: str
-
-def node_1(state: InputState) -> OverallState:
-    # Write to OverallState
-    return {"foo": state["user_input"] + " name"}
-
-def node_2(state: OverallState) -> PrivateState:
-    # Read from OverallState, write to PrivateState
-    return {"bar": state["foo"] + " is"}
-
-def node_3(state: PrivateState) -> OutputState:
-    # Read from PrivateState, write to OutputState
-    return {"graph_output": state["bar"] + " Lance"}
-
-builder = StateGraph(OverallState,input_schema=InputState,output_schema=OutputState)
-builder.add_node("node_1", node_1)
-builder.add_node("node_2", node_2)
-builder.add_node("node_3", node_3)
-builder.add_edge(START, "node_1")
-builder.add_edge("node_1", "node_2")
-builder.add_edge("node_2", "node_3")
-builder.add_edge("node_3", END)
-
-graph = builder.compile()
-graph.invoke({"user_input":"My"})
-# {'graph_output': 'My name is Lance'}
-```
+<LanggraphGraphApiMultipleSchemasPy />
 
 
 
@@ -146,6 +111,34 @@ There are two subtle and important points to note here:
     How can we write to `PrivateState` in `node_2`? How does the graph gain access to this schema if it was not passed in the `StateGraph` initialization?
 
     We can do this because `_nodes` can also declare additional state `channels_` as long as the state schema definition exists. In this case, the `PrivateState` schema is defined, so we can add `bar` as a new state channel in the graph and write to it.
+
+
+
+
+<Warning>
+**Private channels are not redacted when streaming.**
+
+Input, output, and private schemas constrain what each node _reads_ (its input schema) and what `invoke` _returns_ (the output schema). They do **not** hide channels from `stream`.
+
+When you stream with `stream_mode="values"`, the graph emits **all** of its state channels by default, including private ones, because values streaming defaults to the full set of state channels rather than the output schema. This is why a private channel like `bar` is hidden by `invoke` but visible while streaming:
+
+<LanggraphGraphApiStreamPrivateChannelPy />
+
+To restrict the streamed values to a specific set of channels (e.g. only the output schema), pass `output_keys`:
+
+```python
+stream = graph.stream_events(
+    {"user_input": "My"},
+    version="v3",
+    output_keys=["graph_output"],  # [!code highlight]
+)
+for snapshot in stream.values:
+    print(snapshot)
+# {'graph_output': 'My name is Lance'}
+```
+
+If you only need the channels a node actually produced each step (rather than the full accumulated state), use `stream_mode="updates"` instead.
+</Warning>
 
 
 
@@ -311,7 +304,7 @@ builder.add_node("node_with_execution_info", node_with_execution_info)
 
 
 
-Behind the scenes, functions are converted to [`RunnableLambda`](https://reference.langchain.com/python/langchain-core/runnables/base/RunnableLambda), which add batch and async support to your function, along with [native tracing and debugging](/langsmith/home).
+Behind the scenes, functions are converted to [`RunnableLambda`](https://reference.langchain.com/python/langchain-core/runnables/base/RunnableLambda), which add batch and async support to your function, along with [native tracing and debugging](/langsmith/observability).
 
 If you add a node to a graph without specifying a name, it will be given a default name equivalent to the function name.
 
@@ -426,6 +419,17 @@ print(graph.invoke({"x": 5}, stream_mode='updates'))    # [!code highlight]
 print(graph.invoke({"x": 5}, stream_mode='updates'))    # [!code highlight]
 # [{'expensive_node': {'result': 10}, '__metadata__': {'cached': True}}]
 ```
+
+<Note>
+`set_entry_point(node)` defines the first node the graph will execute.
+It is equivalent to `builder.add_edge(START, node)`.
+
+`set_finish_point(node)` defines the last node in the graph.
+It is equivalent to `builder.add_edge(node, END)`.
+
+Both methods are valid but `add_edge(START, ...)` and `add_edge(..., END)`
+are the recommended modern syntax.
+</Note>
 
 1. First run takes two seconds to run (due to mocked expensive computation).
 2. Second run utilizes cache and returns quickly.
@@ -631,7 +635,7 @@ This is particularly useful when implementing [multi-agent handoffs](/oss/python
 
 <Warning>
 
-`Command(resume=...)` is the **only** `Command` pattern intended as input to `invoke()`/`stream()`. Do not use `Command(update=...)` as input to continue multi-turn conversations—because passing any `Command` as input resumes from the latest checkpoint (i.e. the last step that ran, not `__start__`), the graph will appear stuck if it already finished. To continue a conversation on an existing thread, pass a plain input dict:
+`Command(resume=...)` is the **only** `Command` pattern intended as input to `invoke()`/`stream()` (optionally combined with `update=...` to also apply a state change while resuming). Do not use `Command(update=...)` alone as input to continue multi-turn conversations—because passing any `Command` as input resumes from the latest checkpoint (i.e. the last step that ran, not `__start__`), the graph will appear stuck if it already finished. To continue a conversation on an existing thread, pass a plain input dict:
 
 ```python
 # WRONG - graph resumes from the latest checkpoint
@@ -751,7 +755,7 @@ The current step counter is accessible in `config["metadata"]["langgraph_step"]`
 
 #### How it works
 
-The step counter is stored in `config["metadata"]["langgraph_step"]`. The recursion limit check follows the logic: `step > stop` where `stop = step + recursion_limit + 1`. When the limit is exceeded, LangGraph raises a `GraphRecursionError`.
+The step counter is stored in `config["metadata"]["langgraph_step"]`. LangGraph increments this counter as the graph executes and raises a `GraphRecursionError` once the configured `recursion_limit` is exceeded.
 
 
 
@@ -933,7 +937,7 @@ It's often nice to be able to visualize graphs, especially as they get more comp
 
 ## Observability and Tracing
 
-To trace, debug and evaluate your agents, use [LangSmith](/langsmith/home).
+To trace, debug and evaluate your agents, use [LangSmith](/langsmith/observability).
 
 ## Learn more
 
